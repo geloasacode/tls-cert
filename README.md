@@ -1,5 +1,3 @@
-# tls-cert
-
 If you use a domain name like sample-xyz.com for TLS configuration in Kubernetes and it is not a registered domain, the TLS setup will work in certain scenarios but not in others. Here’s a detailed breakdown of what to expect:
 Internal Use with Unregistered Domains
 
@@ -18,53 +16,3 @@ Public Access and Registered Domains
     SSL/TLS Certificate Validity:
         Public Certificate Authorities (CAs) will only issue certificates for registered domain names. If sample-xyz.com is not registered, you won't be able to obtain a valid SSL/TLS certificate from a CA for this domain.
         For internal or development certificates, you might use self-signed certificates or internal CA certificates, but these will not be trusted by browsers or clients without additional configuration.
-
-Using Self-Signed Certificates
-
-If you are using self-signed certificates for internal or testing purposes:
-
-    Generate a Self-Signed Certificate:
-    You can create a self-signed certificate for your unregistered domain using tools like openssl:
-
-    sh
-
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout server.key -out server.crt -subj "/CN=sample-xyz.com"
-
-Create a Kubernetes Secret with the self-signed certificate and key:
-
-sh
-
-kubectl create secret tls my-tls-secret --cert=server.crt --key=server.key
-
-Use the Secret in Your Ingress Resource:
-
-yaml
-
-    apiVersion: networking.k8s.io/v1
-    kind: Ingress
-    metadata:
-      name: my-ingress
-    spec:
-      tls:
-      - hosts:
-        - sample-xyz.com
-        secretName: my-tls-secret
-      rules:
-      - host: sample-xyz.com
-        http:
-          paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: my-service
-                port:
-                  number: 80
-
-Summary
-
-    Unregistered Domains: Can be used for internal or development purposes, but they won’t work for public access without proper DNS registration and valid certificates.
-    Public Access: Requires a registered domain and a valid certificate from a CA.
-    Self-Signed Certificates: Useful for internal testing but not trusted by default for public use.
-
-For development and testing, using unregistered domain names with self-signed certificates can work as long as you configure your environment appropriately. For production, you need registered domains and certificates from a trusted CA.
